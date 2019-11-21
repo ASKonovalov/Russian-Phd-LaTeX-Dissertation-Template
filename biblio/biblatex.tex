@@ -30,6 +30,12 @@ sorting=none,% настройка сортировки списка литера
 }
 \makeatother
 
+\ifxetexorluatex
+\else
+% Исправление случая неподдержки знака номера в pdflatex
+    \DefineBibliographyStrings{russian}{number={\textnumero}}
+\fi
+
 \ifsynopsis
 \ifnumgreater{\value{usefootcite}}{0}{
     \ExecuteBibliographyOptions{autocite=footnote}
@@ -94,6 +100,9 @@ sorting=none,% настройка сортировки списка литера
             \step[fieldset=media, fieldvalue=eresource]
             \step[fieldset=medium, null]
         }
+        \map{% использование media=text по умолчанию
+            \step[fieldset=media, fieldvalue=text]
+        }
         \map[overwrite]{% стираем значения всех полей issn
             \step[fieldset=issn, null]
         }
@@ -111,9 +120,31 @@ sorting=none,% настройка сортировки списка литера
             \step[fieldsource=keywords]
             \step[fieldset=keywords,null]
         }
-        \map[overwrite,foreach={authorvak,authorscopus,authorwos,authorconf,authorother}]{ % записываем информацию о типе публикации в ключевые слова
-            \step[fieldsource=$MAPLOOP,final=true]
-            \step[fieldset=keywords,fieldvalue={,biblio$MAPLOOP},append=true]
+        % реализация foreach различается для biblatex v3.12 и v3.13.
+        % Для версии v3.13 эта конструкция заменяет последующие 5 структур map
+        % \map[overwrite,foreach={authorvak,authorscopus,authorwos,authorconf,authorother}]{ % записываем информацию о типе публикации в ключевые слова
+        %     \step[fieldsource=$MAPLOOP,final=true]
+        %     \step[fieldset=keywords,fieldvalue={,biblio$MAPLOOP},append=true]
+        % }
+        \map[overwrite]{ % записываем информацию о типе публикации в ключевые слова
+            \step[fieldsource=authorvak,final=true]
+            \step[fieldset=keywords,fieldvalue={,biblioauthorvak},append=true]
+        }
+        \map[overwrite]{ % записываем информацию о типе публикации в ключевые слова
+            \step[fieldsource=authorscopus,final=true]
+            \step[fieldset=keywords,fieldvalue={,biblioauthorscopus},append=true]
+        }
+        \map[overwrite]{ % записываем информацию о типе публикации в ключевые слова
+            \step[fieldsource=authorwos,final=true]
+            \step[fieldset=keywords,fieldvalue={,biblioauthorwos},append=true]
+        }
+        \map[overwrite]{ % записываем информацию о типе публикации в ключевые слова
+            \step[fieldsource=authorconf,final=true]
+            \step[fieldset=keywords,fieldvalue={,biblioauthorconf},append=true]
+        }
+        \map[overwrite]{ % записываем информацию о типе публикации в ключевые слова
+            \step[fieldsource=authorother,final=true]
+            \step[fieldset=keywords,fieldvalue={,biblioauthorother},append=true]
         }
         \map[overwrite]{ % добавляем ключевые слова, чтобы различать источники
             \perdatasource{biblio/external.bib}
@@ -396,11 +427,15 @@ sorting=none,% настройка сортировки списка литера
 % Порядок команд `\printbibliography` должен соответствовать порядку в файле common/characteristic.tex
 \newcommand*{\insertbiblioauthorgrouped}{
     \section*{\bibtitleauthor}
-    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorvak,    title=\bibtitleauthorvak]%
-    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorwos,    title=\bibtitleauthorwos]%
-    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorscopus, title=\bibtitleauthorscopus]%
-    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorconf,   title=\bibtitleauthorconf]%
-    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorother,  title=\bibtitleauthorother]%
+    \ifsynopsis
+    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorvak,    title=\bibtitleauthorvak,resetnumbers=true]
+    \else
+    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorvak,    title=\bibtitleauthorvak,resetnumbers=false]
+    \fi
+    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorwos,    title=\bibtitleauthorwos,resetnumbers=false]%
+    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorscopus, title=\bibtitleauthorscopus,resetnumbers=false]%
+    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorconf,   title=\bibtitleauthorconf,resetnumbers=false]%
+    \printbibliography[heading=pubsubgroup, section=0, keyword=biblioauthorother,  title=\bibtitleauthorother,resetnumbers=false]%
 }
 
 \newcommand*{\insertbiblioexternal}{
